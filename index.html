@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>False 12 Media — Performance Dashboard</title>
+<title>False 12 Media — Analytics</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -81,6 +81,83 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 .tag-blue{background:var(--blue-d);color:var(--blue);border:1px solid rgba(79,142,247,0.25);}
 .tag-green{background:var(--green-d);color:var(--green);border:1px solid rgba(62,207,142,0.25);}
 .tag-amber{background:var(--amber-d);color:var(--amber);border:1px solid rgba(245,166,35,0.25);}
+
+/* ── Smart Insights panels ───────────────────────────────────────────────── */
+.si-meta-bar {
+  border-bottom: 1px solid var(--border);
+  padding: 0 36px;
+  overflow: hidden;
+  max-height: 44px;
+  transition: max-height 0.3s ease;
+}
+.si-meta-bar.open { max-height: 800px; }
+.si-meta-trigger {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 0; cursor: pointer; user-select: none;
+}
+.si-meta-spark { font-size: 13px; opacity: 0.6; }
+.si-meta-label {
+  font-size: 11px; font-family: var(--mono); color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  transition: color 0.15s;
+}
+.si-meta-trigger:hover .si-meta-label { color: var(--amber); }
+.si-meta-trigger:hover .si-meta-spark { opacity: 1; }
+.si-meta-chevron {
+  margin-left: auto; font-size: 10px; color: var(--muted);
+  transition: transform 0.25s;
+}
+.si-meta-bar.open .si-meta-chevron { transform: rotate(180deg); }
+.si-meta-body { padding-bottom: 18px; }
+.si-panel {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 11px; padding: 14px 16px; margin-bottom: 14px;
+  font-size: 12px; line-height: 1.75; color: var(--text);
+}
+.si-panel-ts {
+  font-size: 10px; font-family: var(--mono); color: var(--muted);
+  margin-top: 8px;
+}
+.si-bullet { color: var(--amber); font-weight: 600; }
+.si-tab-bar {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 11px; padding: 0; margin-bottom: 16px;
+  overflow: hidden;
+}
+.si-tab-trigger {
+  display: flex; align-items: center; gap: 8px;
+  padding: 11px 16px; cursor: pointer; user-select: none;
+  border-bottom: 1px solid transparent;
+  transition: background 0.15s;
+}
+.si-tab-trigger:hover { background: var(--surface2); }
+.si-tab-bar.open .si-tab-trigger { border-bottom-color: var(--border); }
+.si-tab-label {
+  font-size: 10px; font-family: var(--mono); color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.si-tab-spark { font-size: 12px; opacity: 0.55; }
+.si-tab-trigger:hover .si-tab-label { color: var(--amber); }
+.si-tab-trigger:hover .si-tab-spark { opacity: 1; }
+.si-tab-chevron {
+  margin-left: auto; font-size: 10px; color: var(--muted);
+  transition: transform 0.25s;
+}
+.si-tab-bar.open .si-tab-chevron { transform: rotate(180deg); }
+.si-tab-body { padding: 14px 16px 16px; display: none; }
+.si-tab-bar.open .si-tab-body { display: block; }
+@media(max-width:900px){
+  .si-meta-bar { padding: 0 16px; }
+}
+
+.si-period-badge {
+  display: block; font-size: 9px; font-family: var(--mono);
+  font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 2px 7px; border-radius: 4px; margin-bottom: 12px;
+  background: rgba(245,166,35,0.12); color: var(--amber);
+  border: 1px solid rgba(245,166,35,0.25);
+  width: fit-content;
+}
 
 /* CUSTOM DATE RANGE */
 .custom-range {
@@ -299,8 +376,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
     <div class="logo-dot"></div>
     <div>
       <div class="brand">False 12 Media</div>
-      <div class="page-title">Performance Dashboard</div>
-      <div class="last-updated" id="last-updated">Last updated: Apr 5, 2026, 12:54 PM EDT</div>
+      <div class="page-title">Analytics</div>
+      <div class="last-updated" id="last-updated">Last updated: Apr 5, 2026, 02:27 PM EDT</div>
     </div>
   </div>
   <div class="header-right">
@@ -326,6 +403,19 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 </div>
 
 
+<div class="si-meta-bar" id="si-meta-bar">
+  <div class="si-meta-trigger" onclick="toggleSiMeta()">
+    <span class="si-meta-spark">✦</span>
+    <span class="si-meta-label">Smart Insights — General Analysis</span>
+    <button class="info-btn" onclick="showInfo('smart-insights-meta',event)" title="What is this?" style="margin-left:8px;">i</button>
+    <span class="si-meta-chevron">▾</span>
+  </div>
+  <div class="si-meta-body">
+    <div class="si-panel si-insight-panel" data-tab="meta" data-period="all"><span class="si-period-badge">All time</span><strong>Biggest Opportunity</strong><br><br>*   <strong>Leverage high FYP amplification:</strong> 27 posts have been amplified by the FYP, indicating strong potential for viral growth. The top performing posts consistently achieve over 87% FYP reach.<br>*   <strong>Capitalize on evening posting times:</strong> Evening posts show the highest average FYP percentage (56.9%), suggesting this is the optimal time to capture audience attention and drive views.<br>*   <strong>Optimize for follower conversion:</strong> A 13.3% conversion rate from profile views to followers is solid, but there's room to improve by further refining the content that leads to these profile visits.<br><br><strong>Biggest Bottleneck</strong><br><br>*   <strong>Low comment rate:</strong> A 0.02% comment rate suggests a lack of active community engagement. <strong>Action:</strong> Implement direct calls to action in videos asking specific questions to encourage comments.<br>*   <strong>Underperforming save rate:</strong> A 0.380% save rate indicates content isn't perceived as highly valuable or evergreen. <strong>Action:</strong> Create more tutorial, tip-based, or resource-heavy content that users will want to revisit.<br>*   <strong>Inconsistent follower growth per video:</strong> While some videos gain thousands of followers, others likely contribute less, impacting the overall daily average of 97.8 followers. <strong>Action:</strong> Analyze the top-performing posts (like the 3.8M view video) to identify common themes, hooks, and editing styles that resonate most with the audience and replicate them.</div><div class="si-panel si-insight-panel" data-tab="meta" data-period="30" style="display:none;"><span class="si-period-badge">Last 30 days</span><strong>Biggest Opportunity</strong><br>*   Leverage high FYP performance: 88.1% of views are FYP, with 14 videos amplified. This indicates strong algorithmic favorability.<br>*   Capitalize on strong follower growth: 4,555 followers gained in 30 days, averaging 165 per day, with a 1.032 followers/1K views ratio.<br>*   Optimize for profile visits: 35,713 profile views suggest audience interest beyond individual videos.<br><br><strong>Biggest Bottleneck</strong><br>*   Low conversion rate: Only 14.8% of profile views convert to followers. <strong>Action:</strong> Add clearer calls-to-action within video content and in the bio to encourage following.<br>*   Underperforming CTR: A 0.698% CTR indicates videos aren't compelling enough to drive clicks to the profile or other content. <strong>Action:</strong> Experiment with more engaging hooks and preview content in the first 3 seconds of videos.<br>*   Low save rate: A 0.474% save rate suggests content isn't perceived as highly valuable or evergreen. <strong>Action:</strong> Create more tutorial, educational, or highly shareable "saveable" content.</div>
+    <div class="si-panel-ts si-insight-ts" data-tab="meta" data-period="all">All time · Generated Apr 5, 2026, 02:27 PM ET</div><div class="si-panel-ts si-insight-ts" data-tab="meta" data-period="30" style="display:none;">Last 30 days · Generated Apr 5, 2026, 02:27 PM ET</div>
+  </div>
+</div>
+
 <div class="nav">
   <div class="nav-tab active" onclick="setTab('growth')">Growth</div>
   <div class="nav-tab" onclick="setTab('reach')">Reach</div>
@@ -338,6 +428,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 
   <!-- ── GROWTH ── -->
   <div class="section active" id="sec-growth">
+    <div class="si-tab-bar" id="si-growth"><div class="si-tab-trigger" onclick="toggleSiTab('si-growth')"><span class="si-tab-spark">✦</span><span class="si-tab-label">Smart Insights — Growth</span><button class="info-btn" onclick="event.stopPropagation();showInfo('smart-insights-tab',event)" title="What is this?" style="margin-left:8px;flex-shrink:0;">i</button><span class="si-tab-chevron">▾</span></div><div class="si-tab-body"><div class="si-panel si-insight-panel" data-tab="growth" data-period="all"><span class="si-period-badge">All time</span><span class="si-bullet">•</span> Focus on posting on Saturdays, as this day historically drives the most follower growth, to capitalize on current trends.<br><span class="si-bullet">•</span> Aim to increase follower conversion by improving content, as the current 1.845 followers per 1K views is below industry benchmarks.<br><span class="si-bullet">•</span> To maintain momentum, consistently produce content that attracts an average of 97.8 new followers daily.</div><div class="si-panel si-insight-panel" data-tab="growth" data-period="30" style="display:none;"><span class="si-period-badge">Last 30 days</span><span class="si-bullet">•</span> Focus on Saturday content, as it brought in 165.4 followers/day on average, aiming to replicate this success on other days.<br><span class="si-bullet">•</span> Your content converts 1.032 followers per 1,000 views, so aim to increase views on your best-performing videos to maximize follower acquisition.<br><span class="si-bullet">•</span> Identify why Thursdays are your worst growth day and test different content formats or posting times to improve performance on that specific day.</div><div class="si-panel-ts si-insight-ts" data-tab="growth" data-period="all">All time · Generated Apr 5, 2026, 02:27 PM ET</div><div class="si-panel-ts si-insight-ts" data-tab="growth" data-period="30" style="display:none;">Last 30 days · Generated Apr 5, 2026, 02:27 PM ET</div></div></div>
     <div class="kpi-grid" id="kpi-growth"></div>
     <div class="chart-grid-1">
       <div class="chart-card">
@@ -385,6 +476,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 
   <!-- ── REACH ── -->
   <div class="section" id="sec-reach">
+    <div class="si-tab-bar" id="si-reach"><div class="si-tab-trigger" onclick="toggleSiTab('si-reach')"><span class="si-tab-spark">✦</span><span class="si-tab-label">Smart Insights — Reach</span><button class="info-btn" onclick="event.stopPropagation();showInfo('smart-insights-tab',event)" title="What is this?" style="margin-left:8px;flex-shrink:0;">i</button><span class="si-tab-chevron">▾</span></div><div class="si-tab-body"><div class="si-panel si-insight-panel" data-tab="reach" data-period="all"><span class="si-period-badge">All time</span><span class="si-bullet">•</span> Focus on content that drove the 21.3 million total views, as this indicates strong audience interest.<br><span class="si-bullet">•</span> Analyze the 8.9 million new viewers to understand what attracted them and replicate those elements.<br><span class="si-bullet">•</span> Leverage the 56.8% average new viewer share by creating more shareable content to further expand reach.</div><div class="si-panel si-insight-panel" data-tab="reach" data-period="30" style="display:none;"><span class="si-period-badge">Last 30 days</span><span class="si-bullet">•</span> Increase total views by 10% by posting 1-2 additional videos per week, aiming for over 5.6 million views.<br><span class="si-bullet">•</span> Boost new viewer acquisition by 15% by collaborating with 2-3 creators in similar niches, targeting over 1.7 million new viewers.<br><span class="si-bullet">•</span> Improve average new viewer share by 5% by creating 3-4 videos with trending sounds or formats, aiming for over 42% new viewer share.</div><div class="si-panel-ts si-insight-ts" data-tab="reach" data-period="all">All time · Generated Apr 5, 2026, 02:27 PM ET</div><div class="si-panel-ts si-insight-ts" data-tab="reach" data-period="30" style="display:none;">Last 30 days · Generated Apr 5, 2026, 02:27 PM ET</div></div></div>
     <div class="kpi-grid" id="kpi-reach"></div>
     <div class="chart-grid-1">
       <div class="chart-card">
@@ -412,6 +504,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 
   <!-- ── FUNNEL ── -->
   <div class="section" id="sec-funnel">
+    <div class="si-tab-bar" id="si-funnel"><div class="si-tab-trigger" onclick="toggleSiTab('si-funnel')"><span class="si-tab-spark">✦</span><span class="si-tab-label">Smart Insights — Funnel</span><button class="info-btn" onclick="event.stopPropagation();showInfo('smart-insights-tab',event)" title="What is this?" style="margin-left:8px;flex-shrink:0;">i</button><span class="si-tab-chevron">▾</span></div><div class="si-tab-body"><div class="si-panel si-insight-panel" data-tab="funnel" data-period="all"><span class="si-period-badge">All time</span><span class="si-bullet">•</span> Increase profile views by 10% by optimizing video hooks, aiming for 161,697 total views.<br><span class="si-bullet">•</span> Boost profile visit rate from 0.958% to 1.1% by improving thumbnail and title relevance to video content.<br><span class="si-bullet">•</span> Improve follow conversion rate from 13.3% to 15% by adding clearer calls to action within videos and on the profile.</div><div class="si-panel si-insight-panel" data-tab="funnel" data-period="30" style="display:none;"><span class="si-period-badge">Last 30 days</span><span class="si-bullet">•</span> Increase profile views by 20% from 35,713 to 42,855 by posting 3 additional videos per week.<br><span class="si-bullet">•</span> Boost profile visit rate from 0.698% to 0.8% by optimizing video thumbnails and titles.<br><span class="si-bullet">•</span> Improve follow conversion from 14.8% to 18% by adding a clear call-to-action in the last 5 seconds of videos.</div><div class="si-panel-ts si-insight-ts" data-tab="funnel" data-period="all">All time · Generated Apr 5, 2026, 02:27 PM ET</div><div class="si-panel-ts si-insight-ts" data-tab="funnel" data-period="30" style="display:none;">Last 30 days · Generated Apr 5, 2026, 02:27 PM ET</div></div></div>
     <div class="kpi-grid" id="kpi-funnel"></div>
     <div class="chart-grid-2">
       <div class="chart-card">
@@ -449,6 +542,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 
   <!-- ── ENGAGEMENT ── -->
   <div class="section" id="sec-engagement">
+    <div class="si-tab-bar" id="si-engagement"><div class="si-tab-trigger" onclick="toggleSiTab('si-engagement')"><span class="si-tab-spark">✦</span><span class="si-tab-label">Smart Insights — Engagement</span><button class="info-btn" onclick="event.stopPropagation();showInfo('smart-insights-tab',event)" title="What is this?" style="margin-left:8px;flex-shrink:0;">i</button><span class="si-tab-chevron">▾</span></div><div class="si-tab-body"><div class="si-panel si-insight-panel" data-tab="engagement" data-period="all"><span class="si-period-badge">All time</span><span class="si-bullet">•</span> Focus on increasing comments, which are currently at 0.02%, by asking direct questions in video captions to encourage audience interaction.<br><span class="si-bullet">•</span> Leverage the high like rate of 5.51% by creating more content similar to your top-performing posts that resonate most with viewers.<br><span class="si-bullet">•</span> Boost share rate from 0.47% by creating more shareable content, such as relatable humor or valuable tips, that viewers will want to send to friends.</div><div class="si-panel si-insight-panel" data-tab="engagement" data-period="30" style="display:none;"><span class="si-period-badge">Last 30 days</span><span class="si-bullet">•</span> Increase comment prompts in videos to boost the current 0.06% comment rate, aiming for a 0.1% or higher.<br><span class="si-bullet">•</span> Focus on creating more shareable content, as the 1.07% share rate is strong, to leverage the 25,727 shares.<br><span class="si-bullet">•</span> Continue producing content that generates likes, as the 10.93% like rate is a significant driver of the 5.704% overall engagement.</div><div class="si-panel-ts si-insight-ts" data-tab="engagement" data-period="all">All time · Generated Apr 5, 2026, 02:27 PM ET</div><div class="si-panel-ts si-insight-ts" data-tab="engagement" data-period="30" style="display:none;">Last 30 days · Generated Apr 5, 2026, 02:27 PM ET</div></div></div>
     <div class="kpi-grid" id="kpi-engagement"></div>
     <div class="rate-drilldown" id="rate-drilldown">
       <div class="drilldown-header">
@@ -497,6 +591,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 
   <!-- ── CONTENT QUALITY ── -->
   <div class="section" id="sec-content">
+    <div class="si-tab-bar" id="si-content"><div class="si-tab-trigger" onclick="toggleSiTab('si-content')"><span class="si-tab-spark">✦</span><span class="si-tab-label">Smart Insights — Content Quality</span><button class="info-btn" onclick="event.stopPropagation();showInfo('smart-insights-tab',event)" title="What is this?" style="margin-left:8px;flex-shrink:0;">i</button><span class="si-tab-chevron">▾</span></div><div class="si-tab-body"><div class="si-panel si-insight-panel" data-tab="content" data-period="all"><span class="si-period-badge">All time</span>*   Focus on creating content similar to your top 3 posts, which achieved over 1.4 million views and 66% retention, to replicate high engagement.<br>*   Post more frequently in the evening, as this time slot shows a significantly higher average FYP percentage (56.9%) compared to other times.<br>*   Aim to increase your average save rate from 0.380% by creating more valuable or shareable content, as this metric is currently low across your posts.</div><div class="si-panel si-insight-panel" data-tab="content" data-period="30" style="display:none;"><span class="si-period-badge">Last 30 days</span><span class="si-bullet">•</span> Aim to post at least once a day, as the 4 days with 2 posts saw higher engagement than the 4 days with 1 post.<br><span class="si-bullet">•</span> Focus on content similar to the top 3 posts, which all achieved over 94% FYP reach and averaged 53.6% retention.<br><span class="si-bullet">•</span> Increase save rate by adding more value or actionable tips, as the average save rate is currently only 0.474%.</div><div class="si-panel-ts si-insight-ts" data-tab="content" data-period="all">All time · Generated Apr 5, 2026, 02:27 PM ET</div><div class="si-panel-ts si-insight-ts" data-tab="content" data-period="30" style="display:none;">Last 30 days · Generated Apr 5, 2026, 02:27 PM ET</div></div></div>
     <div class="kpi-grid" id="kpi-content"></div>
     <div class="chart-grid-2">
       <div class="chart-card">
@@ -577,6 +672,8 @@ const TOOLTIPS = {
   'views-chart':         { title: `Daily views over time`, body: `Total views received each day. Spikes usually correspond to a post going viral or receiving FYP amplification. A rising baseline means structural growth in distribution.`, formula: `Source: Overview export · Video Views column` },
   'viewers-chart':       { title: `New vs returning viewers`, body: `New viewers (blue) are seeing your content for the first time. Returning viewers (green) have watched before. A healthy channel has a steady flow of new viewers with a growing returning base.`, formula: `Source: Viewers export · New Viewers and Returning Viewers columns` },
   'nvshare-chart':       { title: `New viewer share (%)`, body: `The percentage of each day's viewers who were new to the page. Early-stage pages typically have 80–95% new viewers. As a page matures, the returning viewer share grows and this number naturally falls.`, formula: `New Viewers ÷ Total Viewers × 100 · daily` },
+  'smart-insights-meta': { title: 'Smart Insights — General Analysis', body: 'AI-generated analysis powered by Google Gemini that synthesizes performance signals across all five dashboard tabs into a unified creator brief. Identifies the single biggest opportunity and the single biggest bottleneck based on your data.', formula: 'Available for: All time · Last 30 days. For all other time periods, the All time analysis is shown. Refreshed automatically every time the pipeline runs.' },
+  'smart-insights-tab':  { title: 'Smart Insights — Tab Analysis', body: 'AI-generated analysis powered by Google Gemini focused on the metrics within this specific tab. Each insight references your actual numbers and is designed to be directly actionable for a TikTok creator.', formula: 'Available for: All time · Last 30 days. For all other time periods, the All time analysis is shown. Refreshed automatically every time the pipeline runs.' },
   'avg-pv-day':          { title: `Avg profile views / day`, body: `How many people visit the page profile each day on average. Profile visits are the critical middle step between watching a video and deciding to follow.`, formula: `Mean(daily Profile Views) · Overview export` },
   'total-pv':            { title: `Total profile views`, body: `The total number of profile page visits in the selected period. A high number here relative to views means your content is compelling people to find out more.`, formula: `Sum of daily Profile Views · Overview export` },
   'avg-ctr':             { title: `Avg CTR (click-through rate)`, body: `Of everyone who saw a video, what share clicked through to the profile page. A low CTR means most viewers watch but do not investigate further. CTR typically rises when content quality or CTA strength improves.`, formula: `Profile Views ÷ Video Views · daily median` },
@@ -2115,8 +2212,31 @@ function setPostTimeMetric(metric) {
 }
 
 
+// ── Smart Insights toggles ────────────────────────────────────────────────────
+function toggleSiMeta() {
+  document.getElementById('si-meta-bar').classList.toggle('open');
+}
+function toggleSiTab(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+
+
+// ── Smart Insights period swap ────────────────────────────────────────────────
+function syncInsightPeriod() {
+  // Determine which insight period to show
+  const p = period; // global period variable
+  const showPeriod = (p === '30') ? '30' : 'all';
+  // 7d, 60d, 90d, custom, all → show all-time insights
+
+  document.querySelectorAll('.si-insight-panel, .si-insight-ts').forEach(el => {
+    el.style.display = el.dataset.period === showPeriod ? '' : 'none';
+  });
+}
+
+
 function renderActive() {
   closeRateDrilldown();
+  syncInsightPeriod();
   if(activeTab==='growth')     renderGrowth();
   else if(activeTab==='reach') renderReach();
   else if(activeTab==='funnel') renderFunnel();
