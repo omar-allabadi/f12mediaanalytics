@@ -921,7 +921,7 @@ function getPosts() {
   const d = getDaily();
   if(!d.length) return [];
   const cutoff = d[0].date;
-  const ceiling = d[d.length-1].date;
+  const ceiling = POSTS.length ? POSTS.reduce((max, p) => p.date > max ? p.date : max, POSTS[0].date) : d[d.length-1].date;
   return POSTS.filter(p => p.date >= cutoff && p.date <= ceiling);
 }
 
